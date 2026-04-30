@@ -7,29 +7,14 @@
     <style>
         body { font-family: 'Tahoma', sans-serif; margin: 0; background: #f4ece1; color: #5d4037; padding: 40px 20px; }
         h1 { text-align: center; color: #8d6e63; letter-spacing: 2px; margin-bottom: 10px; }
-        
-        /* ปุ่มสำหรับกลับไปหน้าลงทะเบียน */
         .top-nav { text-align: center; margin-bottom: 40px; }
         .add-btn {
-            display: inline-block;
-            padding: 10px 25px;
-            background: #ffffff;
-            border: 2px solid #d7ccc8;
-            border-radius: 12px;
-            color: #8d6e63;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-            transition: 0.3s;
+            display: inline-block; padding: 10px 25px; background: #ffffff;
+            border: 2px solid #d7ccc8; border-radius: 12px; color: #8d6e63;
+            text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .add-btn:hover {
-            background: #efebe9;
-            border-color: #a1887f;
-            color: #6d4c41;
-            transform: translateY(-2px);
-        }
-
+        .add-btn:hover { background: #efebe9; border-color: #a1887f; color: #6d4c41; transform: translateY(-2px); }
         .gallery-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
         .char-card { background: #ffffff; border-radius: 15px; border: 1px solid #d7ccc8; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: 0.3s; }
         .char-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
@@ -43,7 +28,6 @@
         .modal-content { background: white; padding: 30px; border-radius: 20px; width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .modal-content label { display: block; margin-top: 10px; font-weight: bold; font-size: 13px; color: #8d6e63; }
         .modal-content input, .modal-content textarea, .modal-content select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #d7ccc8; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        
         .save-btn { background: #6d4c41; color: white; width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; font-weight: bold; font-size: 16px; }
         .delete-btn { background: #ef4444; color: white; width: 100%; padding: 10px; border: none; border-radius: 10px; cursor: pointer; margin-top: 10px; font-weight: bold; }
     </style>
@@ -51,7 +35,6 @@
 <body>
 
     <div class="top-nav">
-        <!-- ปุ่มกลับไปหน้าลงทะเบียน -->
         <a href="https://akanezz2314.github.io/Akane_system_test03/index.html" class="add-btn">➕ ลงทะเบียนตัวละครใหม่</a>
     </div>
 
@@ -59,7 +42,6 @@
     <div id="loading" style="text-align: center; margin-top: 20px;">✨ กำลังอัญเชิญข้อมูลตัวละคร...</div>
     <div class="gallery-container" id="gallery"></div>
 
-    <!-- Modal จัดการข้อมูลเดิมของคุณ -->
     <div id="edit-modal">
         <div class="modal-content">
             <h2 style="margin-top:0; color:#8d6e63; text-align: center;">📝 จัดการข้อมูล</h2>
@@ -79,17 +61,27 @@
     </div>
 
     <script>
-        // URL ล่าสุดที่คุณใช้งานอยู่
+        // ใช้ URL ล่าสุดที่ท่านส่งมา
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyouf8yQuixCSP5zhS6EbjeknYy5335fAx0M4gshQBITd7HUE1ARxHHhgvMVxUT-Q-WLA/exec";
         let allData = [];
 
         async function fetchCharacters() {
+            console.log("Starting to fetch data...");
             try {
-                const response = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
+                const response = await fetch(SCRIPT_URL);
+                if (!response.ok) throw new Error("Network response was not ok");
+                
                 allData = await response.json();
-                renderGallery();
+                console.log("Data received:", allData);
+                
+                if (allData.length === 0) {
+                    document.getElementById('loading').innerText = "📭 ยังไม่มีรายนามตัวละครในสารบบ";
+                } else {
+                    renderGallery();
+                }
             } catch (e) {
-                document.getElementById('loading').innerText = "❌ ไม่สามารถติดต่อสารบบได้";
+                console.error("Fetch Error:", e);
+                document.getElementById('loading').innerHTML = `❌ ไม่สามารถติดต่อสารบบได้<br><small style="color: grey;">สาเหตุ: ${e.message}</small>`;
             }
         }
 
@@ -101,7 +93,8 @@
             allData.forEach((char, index) => {
                 const card = document.createElement('div');
                 card.className = 'char-card';
-                const finalImg = char.imageUrl || char.imageurl || ''; 
+                // ปรับให้รองรับ imageurl ทั้งตัวเล็กและตัวใหญ่
+                const finalImg = char.imageurl || char.imageUrl || char.imageURL || ''; 
                 card.innerHTML = `
                     <img src="${finalImg}" class="char-img" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
                     <div class="char-info">
@@ -131,26 +124,38 @@
             const faction = document.getElementById('edit-faction').value;
             const bio = document.getElementById('edit-bio').value;
             document.querySelector('.save-btn').innerText = "⏳ กำลังจารึก...";
-            await fetch(SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({ action: "update", id: id, name: name, faction: faction, bio: bio })
-            });
-            alert("อัปเดตข้อมูลเรียบร้อย!");
-            location.reload();
+            
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify({ action: "update", id: id, name: name, faction: faction, bio: bio })
+                });
+                alert("อัปเดตข้อมูลเรียบร้อย!");
+                location.reload();
+            } catch (e) {
+                alert("เกิดข้อผิดพลาดในการบันทึก");
+                document.querySelector('.save-btn').innerText = "บันทึกการเปลี่ยนแปลง";
+            }
         }
 
         async function deleteCharacter() {
             if (!confirm("⚠️ ท่านแน่ใจหรือไม่ที่จะลบรายนามนี้?")) return;
             const id = document.getElementById('edit-id').value;
             document.querySelector('.delete-btn').innerText = "⏳ กำลังลบ...";
-            await fetch(SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({ action: "delete", id: id })
-            });
-            alert("ลบข้อมูลเรียบร้อย!");
-            location.reload();
+            
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify({ action: "delete", id: id })
+                });
+                alert("ลบข้อมูลเรียบร้อย!");
+                location.reload();
+            } catch (e) {
+                alert("เกิดข้อผิดพลาดในการลบ");
+                document.querySelector('.delete-btn').innerText = "ลบรายนามนี้ออกจากสารบบ";
+            }
         }
 
         fetchCharacters();
