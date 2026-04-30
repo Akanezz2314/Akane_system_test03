@@ -92,7 +92,7 @@
     <label>บันทึกประวัติ</label>
     <textarea id="char-bio" rows="3" placeholder="เล่าเรื่องราวโดยสังเขป..."></textarea>
 
-    <label>รูปตัวละคร (เลือกระบบจะให้ตัดภาพ)</label>
+    <label>รูปตัวละคร</label>
     <input type="file" id="char-image" accept="image/*">
 
     <!-- ส่วนแสดงภาพจำลองหลังจากตัดแล้ว -->
@@ -109,12 +109,12 @@
 <!-- Modal สำหรับตัดภาพ -->
 <div id="crop-modal">
     <div class="modal-content">
-        <h3 style="margin-top:0; color:#8d6e63;">✂️ ปรับแต่งสัดส่วนภาพ (3:4)</h3>
+        <h3 style="margin-top:0; color:#8d6e63;">✂️ Crop(3:4)</h3>
         <div class="crop-container">
             <img id="image-to-crop">
         </div>
         <div class="crop-actions">
-            <button onclick="confirmCrop()">ตกลง ตัดภาพนี้</button>
+            <button onclick="confirmCrop()">ตกลง</button>
             <button class="secondary-btn" onclick="closeModal()">ยกเลิก</button>
         </div>
     </div>
