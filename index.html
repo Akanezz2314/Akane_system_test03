@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ลงทะเบียนตัวละคร - Commu</title>
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         body { 
             font-family: 'Tahoma', sans-serif; 
@@ -21,71 +23,53 @@
             box-shadow: 0 15px 35px rgba(93, 64, 55, 0.1);
         }
         h2 { 
-            color: #8d6e63; 
-            text-align: center; 
-            margin-top: 0; 
-            letter-spacing: 1px;
-            border-bottom: 2px dashed #d7ccc8;
-            padding-bottom: 15px;
+            color: #8d6e63; text-align: center; margin-top: 0; letter-spacing: 1px;
+            border-bottom: 2px dashed #d7ccc8; padding-bottom: 15px;
         }
         label { display: block; margin-top: 15px; font-size: 14px; font-weight: bold; color: #795548; }
         
         input, select, textarea { 
             width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px;
-            border: 1px solid #d7ccc8; 
-            background: #fafafa; 
-            color: #5d4037;
-            box-sizing: border-box; font-size: 16px; outline: none;
-            transition: 0.3s;
+            border: 1px solid #d7ccc8; background: #fafafa; color: #5d4037;
+            box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s;
         }
         
         input:focus, select:focus, textarea:focus { 
-            border-color: #a1887f; 
-            background: #fff;
+            border-color: #a1887f; background: #fff;
             box-shadow: 0 0 8px rgba(161, 136, 127, 0.2);
         }
 
         button { 
             width: 100%; padding: 15px; margin-top: 25px; border: none; border-radius: 12px;
-            background: #8d6e63; 
-            color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
-            font-size: 16px;
-            box-shadow: 0 4px 10px rgba(141, 110, 99, 0.3);
+            background: #8d6e63; color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
+            font-size: 16px; box-shadow: 0 4px 10px rgba(141, 110, 99, 0.3);
         }
         
-        button:hover { 
-            background: #6d4c41; 
-            transform: translateY(-2px); 
-        }
+        button:hover { background: #6d4c41; transform: translateY(-2px); }
 
-        /* ปุ่มสำหรับไปหน้า Gallery */
         .nav-btn {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            padding: 12px;
-            background: none;
-            border: 2px solid #d7ccc8;
-            border-radius: 12px;
-            color: #8d6e63;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: bold;
-            transition: 0.3s;
+            display: block; text-align: center; margin-top: 20px; padding: 12px;
+            background: none; border: 2px solid #d7ccc8; border-radius: 12px;
+            color: #8d6e63; text-decoration: none; font-size: 14px; font-weight: bold; transition: 0.3s;
         }
 
-        .nav-btn:hover {
-            background: #efebe9;
-            border-color: #a1887f;
-            color: #6d4c41;
-        }
-        
+        .nav-btn:hover { background: #efebe9; border-color: #a1887f; color: #6d4c41; }
         button:disabled { background: #d7ccc8; cursor: not-allowed; }
-        
-        #loading { 
-            display: none; text-align: center; margin-top: 20px; 
-            color: #8d6e63; font-style: italic; font-size: 14px;
+        #loading { display: none; text-align: center; margin-top: 20px; color: #8d6e63; font-style: italic; font-size: 14px; }
+
+        /* Modal Styles สำหรับระบบ Crop */
+        #crop-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;
         }
+        .modal-content {
+            background: white; padding: 20px; border-radius: 20px; width: 90%; max-width: 500px;
+        }
+        .crop-container { width: 100%; height: 400px; background: #333; margin-bottom: 20px; overflow: hidden; }
+        #image-to-crop { max-width: 100%; }
+        .crop-actions { display: flex; gap: 10px; }
+        .crop-actions button { margin-top: 0; }
+        .secondary-btn { background: #a1887f; }
     </style>
 </head>
 <body>
@@ -108,15 +92,32 @@
     <label>บันทึกประวัติ</label>
     <textarea id="char-bio" rows="3" placeholder="เล่าเรื่องราวโดยสังเขป..."></textarea>
 
-    <label>รูปตัวละคร</label>
+    <label>รูปตัวละคร (เลือกระบบจะให้ตัดภาพ)</label>
     <input type="file" id="char-image" accept="image/*">
 
-    <button id="submit-btn" onclick="startRegistration()">บันทึกข้อมูลลงทำเนียบตัวละคร</button>
-    
-    <!-- ปุ่มเชื่อมต่อไปยังหน้า Gallery -->
-    <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">🏮 ดูทำเนียบตัวละคร</a>
+    <!-- ส่วนแสดงภาพจำลองหลังจากตัดแล้ว -->
+    <div id="preview-container" style="display:none; margin-top:15px; text-align:center;">
+        <p style="font-size:12px; color:#8d6e63;">✨ ภาพที่ถูกตัดแต่งแล้ว:</p>
+        <img id="final-preview" style="width:120px; height:160px; object-fit:cover; border-radius:10px; border:2px solid #d7ccc8;">
+    </div>
 
-    <div id="loading">📜 กำลังบันทึก...</div>
+    <button id="submit-btn" onclick="startRegistration()">บันทึกข้อมูลลงทำเนียบตัวละคร</button>
+    <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">🏮 ดูทำเนียบตัวละคร</a>
+    <div id="loading">📜 กำลังจารึกข้อมูล...</div>
+</div>
+
+<!-- Modal สำหรับตัดภาพ -->
+<div id="crop-modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:#8d6e63;">✂️ ปรับแต่งสัดส่วนภาพ (3:4)</h3>
+        <div class="crop-container">
+            <img id="image-to-crop">
+        </div>
+        <div class="crop-actions">
+            <button onclick="confirmCrop()">ตกลง ตัดภาพนี้</button>
+            <button class="secondary-btn" onclick="closeModal()">ยกเลิก</button>
+        </div>
+    </div>
 </div>
 
 <div class="container" id="success-msg" style="display:none; text-align: center;">
@@ -126,21 +127,63 @@
     <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">🏮 ไปยังหน้ารายชื่อตัวละคร</a>
 </div>
 
+<!-- Cropper.js JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
 <script>
-    // ใช้ Web App URL ล่าสุดที่คุณได้รับ (สมองตัวใหม่)
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyouf8yQuixCSP5zhS6EbjeknYy5335fAx0M4gshQBITd7HUE1ARxHHhgvMVxUT-Q-WLA/exec";
     const IMGBB_API_KEY = "22f0d46a823d6fcfd96b1b2754fd195b";
+    
+    let cropper;
+    let croppedBlob; // เก็บข้อมูลภาพที่ตัดแล้ว
+
+    // ระบบเลือกไฟล์และเปิด Modal ตัดภาพ
+    document.getElementById('char-image').addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const url = URL.createObjectURL(files[0]);
+            const image = document.getElementById('image-to-crop');
+            image.src = url;
+            
+            document.getElementById('crop-modal').style.display = 'flex';
+            
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(image, {
+                aspectRatio: 3 / 4, // ล็อกสัดส่วนแนวตั้งสวยๆ
+                viewMode: 1,
+                autoCropArea: 1
+            });
+        }
+    });
+
+    function confirmCrop() {
+        const canvas = cropper.getCroppedCanvas({
+            width: 600, // บังคับขนาดเพื่อประหยัดพื้นที่
+            height: 800
+        });
+        
+        canvas.toBlob((blob) => {
+            croppedBlob = blob;
+            // แสดงภาพ Preview เล็กๆ ให้ User มั่นใจ
+            document.getElementById('final-preview').src = URL.createObjectURL(blob);
+            document.getElementById('preview-container').style.display = 'block';
+            closeModal();
+        }, 'image/jpeg', 0.8);
+    }
+
+    function closeModal() {
+        document.getElementById('crop-modal').style.display = 'none';
+    }
 
     async function startRegistration() {
         const name = document.getElementById('char-name').value.trim();
         const faction = document.getElementById('char-faction').value;
         const bio = document.getElementById('char-bio').value.trim();
-        const imageFile = document.getElementById('char-image').files[0];
         const btn = document.getElementById('submit-btn');
         const loader = document.getElementById('loading');
 
-        if (!name || !imageFile) {
-            alert("กรุณาระบุชื่อและเลือกรูปภาพของตัวละคร");
+        if (!name || !croppedBlob) {
+            alert("กรุณาระบุชื่อและตัดภาพตัวละครก่อนบันทึก");
             return;
         }
 
@@ -148,8 +191,9 @@
         loader.style.display = "block";
 
         try {
+            // อัปโหลดภาพที่ถูกตัดแล้ว (croppedBlob) แทนไฟล์ดิบ
             const formData = new FormData();
-            formData.append("image", imageFile);
+            formData.append("image", croppedBlob, "character.jpg");
             
             const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
                 method: "POST",
@@ -160,6 +204,7 @@
             if (!imgbbData.success) throw new Error("ImgBB Upload Failed");
             const imageUrl = imgbbData.data.url;
 
+            // ส่งข้อมูลไปที่ Google Sheet
             await fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",

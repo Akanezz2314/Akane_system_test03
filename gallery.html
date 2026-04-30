@@ -4,109 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Gallery - Manage Mode</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         body { font-family: 'Tahoma', sans-serif; margin: 0; background: #f4ece1; color: #5d4037; padding: 40px 20px; }
-        h1 { text-align: center; color: #8d6e63; letter-spacing: 2px; margin-bottom: 10px; }
-        .top-nav { text-align: center; margin-bottom: 40px; }
-        .add-btn {
-            display: inline-block; padding: 10px 25px; background: #ffffff;
-            border: 2px solid #d7ccc8; border-radius: 12px; color: #8d6e63;
-            text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .add-btn:hover { background: #efebe9; border-color: #a1887f; color: #6d4c41; transform: translateY(-2px); }
-        .gallery-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
-        .char-card { background: #ffffff; border-radius: 15px; border: 1px solid #d7ccc8; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: 0.3s; }
-        .char-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .char-img { width: 100%; height: 350px; object-fit: cover; border-bottom: 2px solid #f4ece1; }
-        .char-info { padding: 20px; }
-        .char-name { font-size: 20px; font-weight: bold; color: #795548; margin: 0; }
-        .char-faction { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; background: #efebe9; color: #8d6e63; margin-top: 5px; border: 1px solid #d7ccc8; }
-        .edit-btn { background: #8d6e63; color: white; border: none; padding: 10px; border-radius: 10px; cursor: pointer; margin-top: 15px; width: 100%; font-weight: bold; }
+        h1 { text-align: center; color: #8d6e63; letter-spacing: 2px; margin-bottom: 30px; }
         
-        #edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .modal-content label { display: block; margin-top: 10px; font-weight: bold; font-size: 13px; color: #8d6e63; }
-        .modal-content input, .modal-content textarea, .modal-content select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #d7ccc8; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        .save-btn { background: #6d4c41; color: white; width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; font-weight: bold; font-size: 16px; }
-        .delete-btn { background: #ef4444; color: white; width: 100%; padding: 10px; border: none; border-radius: 10px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .gallery-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        
+        /* การ์ดตัวละครแบบเท่ากันหมด */
+        .char-card { 
+            background: #ffffff; border-radius: 15px; border: 1px solid #d7ccc8; 
+            overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); 
+            transition: 0.3s; cursor: pointer; display: flex; flex-direction: column;
+            height: 520px; /* บังคับความสูงคงที่เพื่อให้เท่ากันทุกใบ */
+        }
+        .char-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        
+        .char-img { width: 100%; height: 320px; object-fit: cover; object-position: top; border-bottom: 2px solid #f4ece1; }
+        .char-info { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+        .char-name { font-size: 18px; font-weight: bold; color: #795548; margin: 0; }
+        .char-faction { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; background: #efebe9; color: #8d6e63; margin-top: 5px; width: fit-content; }
+        
+        /* ส่วนตัดข้อความที่เกิน */
+        .char-bio-preview { 
+            font-size: 13px; margin-top: 10px; line-height: 1.5; color: #6d4c41;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; 
+            overflow: hidden; text-overflow: ellipsis; /* ใส่ ... เมื่อข้อความยาวเกิน */
+        }
+
+        .edit-btn { background: #8d6e63; color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; margin-top: auto; font-weight: bold; font-size: 12px; }
+
+        /* Modal พื้นฐาน */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; position: relative; }
+        
+        /* หน้าต่างดูข้อมูลเต็ม (Detail View) */
+        #detail-modal .modal-content { max-width: 500px; text-align: center; }
+        .detail-img { width: 100%; max-height: 400px; object-fit: contain; border-radius: 15px; margin-bottom: 15px; }
+        .stat-badge { background: #f4ece1; padding: 5px 15px; border-radius: 10px; font-size: 14px; margin: 5px; display: inline-block; }
+
+        .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: #8d6e63; }
     </style>
 </head>
 <body>
 
-    <div class="top-nav">
-        <a href="https://akanezz2314.github.io/Akane_system_test03/index.html" class="add-btn">➕ ลงทะเบียนตัวละครใหม่</a>
-    </div>
-
-    <h1> 👤ทะเบียนตัวละคร</h1>
-    <div id="loading" style="text-align: center; margin-top: 20px;">✨ กำลังโหลดข้อมูลตัวละคร...</div>
+    <h1>👤 ทำเนียบรายนามตัวละคร</h1>
+    <div id="loading" style="text-align: center;">✨ กำลังอัญเชิญข้อมูล...</div>
     <div class="gallery-container" id="gallery"></div>
 
-    <div id="edit-modal">
+    <!-- Modal 1: ดูข้อมูลแบบละเอียด -->
+    <div id="detail-modal" class="modal" onclick="closeModal(event, 'detail-modal')">
         <div class="modal-content">
-            <h2 style="margin-top:0; color:#8d6e63; text-align: center;">📝 จัดการข้อมูล</h2>
-            <input type="hidden" id="edit-id">
-            <label>รายชื่อตัวละคร</label><input type="text" id="edit-name">
-            <label>เผ่าพันธุ์</label>
-            <select id="edit-faction">
-                <option value="เทพ">เทพ</option>
-                <option value="มาร">มาร</option>
-                <option value="ผู้วิเศษ">ผู้วิเศษ</option>
-                <option value="สามัญชน">สามัญชน</option>
-                <option value="อื่นๆ">อื่นๆ</option>
-            </select>
-            <label>บันทึกประวัติ</label><textarea id="edit-bio" rows="3"></textarea>
-            <button class="save-btn" onclick="saveEdit()">บันทึกการเปลี่ยนแปลง</button>
-            <button class="delete-btn" onclick="deleteCharacter()">ลบรายชื่อนี้ออกจากระบบ</button>
-            <button style="margin-top: 15px; background: none; border: none; color: #a1887f; cursor: pointer; width: 100%;" onclick="closeModal()">ยกเลิก</button>
+            <span class="close-btn" onclick="document.getElementById('detail-modal').style.display='none'">&times;</span>
+            <img id="det-img" class="detail-img">
+            <h2 id="det-name" style="color: #8d6e63; margin-bottom: 5px;"></h2>
+            <div id="det-faction" class="char-faction"></div>
+            <div style="margin: 15px 0;">
+                <span id="det-hp" class="stat-badge"></span>
+                <span id="det-status" class="stat-badge"></span>
+            </div>
+            <p id="det-bio" style="text-align: left; line-height: 1.6; color: #5d4037; white-space: pre-wrap;"></p>
         </div>
     </div>
 
+    <!-- Modal 2: แก้ไขข้อมูล (โค้ดเดิมของท่าน) -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="text-align: center; color:#8d6e63;">📝 แก้ไขข้อมูล</h2>
+            <input type="hidden" id="edit-id">
+            <label>เปลี่ยนรูป</label><input type="file" id="edit-image-input" accept="image/*">
+            <label>ชื่อ</label><input type="text" id="edit-name" style="width:100%; padding:8px; margin-bottom:10px;">
+            <label>เผ่าพันธุ์</label>
+            <select id="edit-faction" style="width:100%; padding:8px; margin-bottom:10px;">
+                <option value="เทพ">เทพ</option><option value="มาร">มาร</option><option value="ผู้วิเศษ">ผู้วิเศษ</option><option value="สามัญชน">สามัญชน</option>
+            </select>
+            <label>ประวัติ</label><textarea id="edit-bio" rows="5" style="width:100%; padding:8px;"></textarea>
+            <button class="edit-btn" style="width:100%; padding:12px; font-size:16px;" onclick="saveEdit()">บันทึกการเปลี่ยนแปลง</button>
+            <button style="width:100%; margin-top:10px; border:none; background:none; cursor:pointer; color:grey;" onclick="document.getElementById('edit-modal').style.display='none'">ยกเลิก</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        // ใช้ URL ล่าสุดที่ท่านส่งมา
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyouf8yQuixCSP5zhS6EbjeknYy5335fAx0M4gshQBITd7HUE1ARxHHhgvMVxUT-Q-WLA/exec";
         let allData = [];
 
         async function fetchCharacters() {
-            console.log("Starting to fetch data...");
             try {
-                const response = await fetch(SCRIPT_URL);
-                if (!response.ok) throw new Error("Network response was not ok");
-                
+                const response = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
                 allData = await response.json();
-                console.log("Data received:", allData);
-                
-                if (allData.length === 0) {
-                    document.getElementById('loading').innerText = "📭 ยังไม่มีรายชื่อตัวละครในระบบ";
-                } else {
-                    renderGallery();
-                }
-            } catch (e) {
-                console.error("Fetch Error:", e);
-                document.getElementById('loading').innerHTML = `❌ ไม่สามารถติดต่อสารบบได้<br><small style="color: grey;">สาเหตุ: ${e.message}</small>`;
-            }
+                renderGallery();
+            } catch (e) { document.getElementById('loading').innerText = "❌ ติดต่อสารบบไม่ได้"; }
         }
 
         function renderGallery() {
             const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
-            document.getElementById('loading').style.display = 'none';
-            
+            gallery.innerHTML = ''; document.getElementById('loading').style.display = 'none';
             allData.forEach((char, index) => {
                 const card = document.createElement('div');
                 card.className = 'char-card';
-                // ปรับให้รองรับ imageurl ทั้งตัวเล็กและตัวใหญ่
-                const finalImg = char.imageurl || char.imageUrl || char.imageURL || ''; 
+                card.onclick = (e) => {
+                    // ถ้าคลิกปุ่มแก้ไข ไม่ต้องเปิดหน้าต่างละเอียด
+                    if (e.target.tagName !== 'BUTTON') showDetail(index);
+                };
+                
+                const finalImg = char.imageurl || char.imageUrl || ''; 
                 card.innerHTML = `
                     <img src="${finalImg}" class="char-img" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
                     <div class="char-info">
                         <p class="char-name">${char.name || 'ไม่ระบุชื่อ'}</p>
                         <span class="char-faction">${char.faction || 'สามัญชน'}</span>
-                        <p style="font-size: 14px; margin-top: 10px; line-height:1.5; color:#6d4c41;">${char.bio || 'ไม่มีบันทึกประวัติ'}</p>
-                        <button class="edit-btn" onclick="openEdit(${index})">แก้ไข / ลบข้อมูล</button>
+                        <div class="char-bio-preview">${char.bio || 'ไม่มีบันทึกประวัติ'}</div>
+                        <button class="edit-btn" onclick="openEdit(${index})">⚙️ แก้ไข / ลบข้อมูล</button>
                     </div>`;
                 gallery.appendChild(card);
             });
+        }
+
+        function showDetail(index) {
+            const char = allData[index];
+            document.getElementById('det-img').src = char.imageurl || char.imageUrl || '';
+            document.getElementById('det-name').innerText = char.name;
+            document.getElementById('det-faction').innerText = char.faction;
+            document.getElementById('det-bio').innerText = char.bio;
+            // ดึงค่า HP และ Status จาก Spreadsheet มาโชว์
+            document.getElementById('det-hp').innerText = "❤️ HP: " + (char.hp || '100');
+            document.getElementById('det-status').innerText = "✨ สถานะ: " + (char.status || 'ปกติ');
+            document.getElementById('detail-modal').style.display = 'flex';
         }
 
         function openEdit(index) {
@@ -118,47 +142,7 @@
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
-        function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
-
-        async function saveEdit() {
-            const id = document.getElementById('edit-id').value;
-            const name = document.getElementById('edit-name').value;
-            const faction = document.getElementById('edit-faction').value;
-            const bio = document.getElementById('edit-bio').value;
-            document.querySelector('.save-btn').innerText = "⏳ กำลังจารึก...";
-            
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify({ action: "update", id: id, name: name, faction: faction, bio: bio })
-                });
-                alert("อัปเดตข้อมูลเรียบร้อย!");
-                location.reload();
-            } catch (e) {
-                alert("เกิดข้อผิดพลาดในการบันทึก");
-                document.querySelector('.save-btn').innerText = "บันทึกการเปลี่ยนแปลง";
-            }
-        }
-
-        async function deleteCharacter() {
-            if (!confirm("⚠️ ท่านแน่ใจหรือไม่ที่จะลบรายนามนี้?")) return;
-            const id = document.getElementById('edit-id').value;
-            document.querySelector('.delete-btn').innerText = "⏳ กำลังลบ...";
-            
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify({ action: "delete", id: id })
-                });
-                alert("ลบข้อมูลเรียบร้อย!");
-                location.reload();
-            } catch (e) {
-                alert("เกิดข้อผิดพลาดในการลบ");
-                document.querySelector('.delete-btn').innerText = "ลบรายชื่อนี้ออกจากระบบ";
-            }
-        }
+        function closeModal(e, id) { if (e.target.id === id) document.getElementById(id).style.display = 'none'; }
 
         fetchCharacters();
     </script>
