@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนตัวละคร - Commu</title>
+    <style>
+        body { 
+            font-family: 'Tahoma', sans-serif; 
+            margin: 0; 
+            background: #f4ece1; 
+            background-image: radial-gradient(#dccab1 0.5px, #f4ece1 0.5px);
+            background-size: 20px 20px;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            color: #5d4037; 
+        }
+        .container { 
+            background: #ffffff;
+            padding: 40px; border-radius: 30px; width: 400px; 
+            border: 2px solid #d7ccc8; 
+            box-shadow: 0 15px 35px rgba(93, 64, 55, 0.1);
+        }
+        h2 { 
+            color: #8d6e63; 
+            text-align: center; 
+            margin-top: 0; 
+            letter-spacing: 1px;
+            border-bottom: 2px dashed #d7ccc8;
+            padding-bottom: 15px;
+        }
+        label { display: block; margin-top: 15px; font-size: 14px; font-weight: bold; color: #795548; }
+        
+        input, select, textarea { 
+            width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px;
+            border: 1px solid #d7ccc8; 
+            background: #fafafa; 
+            color: #5d4037;
+            box-sizing: border-box; font-size: 16px; outline: none;
+            transition: 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus { 
+            border-color: #a1887f; 
+            background: #fff;
+            box-shadow: 0 0 8px rgba(161, 136, 127, 0.2);
+        }
+
+        button { 
+            width: 100%; padding: 15px; margin-top: 25px; border: none; border-radius: 12px;
+            background: #8d6e63; 
+            color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(141, 110, 99, 0.3);
+        }
+        
+        button:hover { 
+            background: #6d4c41; 
+            transform: translateY(-2px); 
+        }
+
+        /* ปุ่มสำหรับไปหน้า Gallery */
+        .nav-btn {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            background: none;
+            border: 2px solid #d7ccc8;
+            border-radius: 12px;
+            color: #8d6e63;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #efebe9;
+            border-color: #a1887f;
+            color: #6d4c41;
+        }
+        
+        button:disabled { background: #d7ccc8; cursor: not-allowed; }
+        
+        #loading { 
+            display: none; text-align: center; margin-top: 20px; 
+            color: #8d6e63; font-style: italic; font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="reg-form">
+    <h2>📝 บันทึกรายชื่อ</h2>
+    
+    <label>รายชื่อตัวละคร</label>
+    <input type="text" id="char-name" placeholder="ระบุชื่อ...">
+
+    <label>เผ่าพันธุ์</label>
+    <select id="char-faction">
+        <option value="เทพ">เทพ</option>
+        <option value="มาร">มาร</option>
+        <option value="ผู้วิเศษ">ผู้วิเศษ</option>
+        <option value="สามัญชน">สามัญชน</option>
+        <option value="อื่นๆ">อื่นๆ</option>
+    </select>
+
+    <label>บันทึกประวัติ</label>
+    <textarea id="char-bio" rows="3" placeholder="เล่าเรื่องราวโดยสังเขป..."></textarea>
+
+    <label>รูปตัวละคร</label>
+    <input type="file" id="char-image" accept="image/*">
+
+    <button id="submit-btn" onclick="startRegistration()">บันทึกข้อมูลลงทำเนียบตัวละคร</button>
+    
+    <!-- ปุ่มเชื่อมต่อไปยังหน้า Gallery -->
+    <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">🏮 ดูทำเนียบตัวละคร</a>
+
+    <div id="loading">📜 กำลังบันทึก...</div>
+</div>
+
+<div class="container" id="success-msg" style="display:none; text-align: center;">
+    <h2 style="color: #8d6e63; border: none;">สำเร็จ!</h2>
+    <p>บันทึกข้อมูลตัวละครเรียบร้อยแล้ว</p>
+    <button onclick="location.reload()">ลงทะเบียนเพิ่มเติม</button>
+    <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">🏮 ไปยังหน้ารายชื่อตัวละคร</a>
+</div>
+
+<script>
+    // ใช้ Web App URL ล่าสุดที่คุณได้รับ (สมองตัวใหม่)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3yDDRx5o4FvUAwWDATb9dQ0aNlOYmJh0m8TxA_e0_BGB4kR4AuBb_xmBLPYAVfpJ-hA/exec";
+    const IMGBB_API_KEY = "22f0d46a823d6fcfd96b1b2754fd195b";
+
+    async function startRegistration() {
+        const name = document.getElementById('char-name').value.trim();
+        const faction = document.getElementById('char-faction').value;
+        const bio = document.getElementById('char-bio').value.trim();
+        const imageFile = document.getElementById('char-image').files[0];
+        const btn = document.getElementById('submit-btn');
+        const loader = document.getElementById('loading');
+
+        if (!name || !imageFile) {
+            alert("กรุณาระบุนามและเลือกภาพลักษณ์ด้วยนะครับท่าน");
+            return;
+        }
+
+        btn.disabled = true;
+        loader.style.display = "block";
+
+        try {
+            const formData = new FormData();
+            formData.append("image", imageFile);
+            
+            const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: "POST",
+                body: formData
+            });
+            const imgbbData = await imgbbResponse.json();
+            
+            if (!imgbbData.success) throw new Error("ImgBB Upload Failed");
+            const imageUrl = imgbbData.data.url;
+
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    name: name,
+                    faction: faction,
+                    bio: bio,
+                    imageUrl: imageUrl
+                })
+            });
+
+            document.getElementById('reg-form').style.display = "none";
+            document.getElementById('success-msg').style.display = "block";
+
+        } catch (error) {
+            console.error(error);
+            alert("เกิดข้อผิดพลาด: " + error.message);
+        } finally {
+            btn.disabled = false;
+            loader.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>
