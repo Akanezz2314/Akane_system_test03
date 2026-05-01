@@ -92,10 +92,17 @@
     <label>บันทึกประวัติ</label>
     <textarea id="char-bio" rows="3" placeholder="เล่าเรื่องราวโดยสังเขป..."></textarea>
 
+    <!-- เพิ่มส่วนเลือกสถานะ (Status) -->
+    <label>สถานะตัวละคร</label>
+    <select id="char-status">
+        <option value="มีชีวิต">มีชีวิต</option>
+        <option value="สูญหาย">สูญหาย</option>
+        <option value="เสียชีวิต">เสียชีวิต</option>
+    </select>
+
     <label>รูปตัวละคร</label>
     <input type="file" id="char-image" accept="image/*">
 
-    <!-- ส่วนแสดงภาพจำลองหลังจากตัดแล้ว -->
     <div id="preview-container" style="display:none; margin-top:15px; text-align:center;">
         <p style="font-size:12px; color:#8d6e63;">ภาพที่ถูกตัดแล้ว:</p>
         <img id="final-preview" style="width:120px; height:160px; object-fit:cover; border-radius:10px; border:2px solid #d7ccc8;">
@@ -106,7 +113,6 @@
     <div id="loading">🟡กำลังบันทึกข้อมูล...</div>
 </div>
 
-<!-- Modal สำหรับตัดภาพ -->
 <div id="crop-modal">
     <div class="modal-content">
         <h3 style="margin-top:0; color:#8d6e63;">✂️ Crop(3:4)</h3>
@@ -127,58 +133,44 @@
     <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">🏮 ไปยังหน้ารายชื่อตัวละคร</a>
 </div>
 
-<!-- Cropper.js JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyouf8yQuixCSP5zhS6EbjeknYy5335fAx0M4gshQBITd7HUE1ARxHHhgvMVxUT-Q-WLA/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwW6mGUQpc0BX6cqqq-V37tJ22PtWWSPMm7y910fpt3eORRSM-Wl8asv4hU3RWATL9UiQ/exec";
     const IMGBB_API_KEY = "22f0d46a823d6fcfd96b1b2754fd195b";
     
     let cropper;
-    let croppedBlob; // เก็บข้อมูลภาพที่ตัดแล้ว
+    let croppedBlob;
 
-    // ระบบเลือกไฟล์และเปิด Modal ตัดภาพ
     document.getElementById('char-image').addEventListener('change', function(e) {
         const files = e.target.files;
         if (files && files.length > 0) {
             const url = URL.createObjectURL(files[0]);
             const image = document.getElementById('image-to-crop');
             image.src = url;
-            
             document.getElementById('crop-modal').style.display = 'flex';
-            
             if (cropper) cropper.destroy();
-            cropper = new Cropper(image, {
-                aspectRatio: 3 / 4, // ล็อกสัดส่วนแนวตั้งสวยๆ
-                viewMode: 1,
-                autoCropArea: 1
-            });
+            cropper = new Cropper(image, { aspectRatio: 3 / 4, viewMode: 1, autoCropArea: 1 });
         }
     });
 
     function confirmCrop() {
-        const canvas = cropper.getCroppedCanvas({
-            width: 600, // บังคับขนาดเพื่อประหยัดพื้นที่
-            height: 800
-        });
-        
+        const canvas = cropper.getCroppedCanvas({ width: 600, height: 800 });
         canvas.toBlob((blob) => {
             croppedBlob = blob;
-            // แสดงภาพ Preview เล็กๆ ให้ User มั่นใจ
             document.getElementById('final-preview').src = URL.createObjectURL(blob);
             document.getElementById('preview-container').style.display = 'block';
             closeModal();
         }, 'image/jpeg', 0.8);
     }
 
-    function closeModal() {
-        document.getElementById('crop-modal').style.display = 'none';
-    }
+    function closeModal() { document.getElementById('crop-modal').style.display = 'none'; }
 
     async function startRegistration() {
         const name = document.getElementById('char-name').value.trim();
         const faction = document.getElementById('char-faction').value;
         const bio = document.getElementById('char-bio').value.trim();
+        const status = document.getElementById('char-status').value; // รับค่าสถานะ
         const btn = document.getElementById('submit-btn');
         const loader = document.getElementById('loading');
 
@@ -191,20 +183,17 @@
         loader.style.display = "block";
 
         try {
-            // อัปโหลดภาพที่ถูกตัดแล้ว (croppedBlob) แทนไฟล์ดิบ
             const formData = new FormData();
             formData.append("image", croppedBlob, "character.jpg");
             
             const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                method: "POST",
-                body: formData
+                method: "POST", body: formData
             });
             const imgbbData = await imgbbResponse.json();
-            
             if (!imgbbData.success) throw new Error("ImgBB Upload Failed");
             const imageUrl = imgbbData.data.url;
 
-            // ส่งข้อมูลไปที่ Google Sheet
+            // ส่งข้อมูลไปที่ Google Sheet พร้อมค่า status
             await fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
@@ -212,6 +201,7 @@
                     name: name,
                     faction: faction,
                     bio: bio,
+                    status: status, // เพิ่มตัวแปรสถานะตรงนี้
                     imageUrl: imageUrl
                 })
             });
@@ -228,6 +218,5 @@
         }
     }
 </script>
-
 </body>
 </html>

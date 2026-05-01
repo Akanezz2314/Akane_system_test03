@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Gallery - Manage Mode</title>
-    <!-- Cropper.js CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         body { font-family: 'Tahoma', sans-serif; margin: 0; background: #f4ece1; color: #5d4037; padding: 40px 20px; }
@@ -19,14 +18,12 @@
         }
         .add-btn:hover { background: #efebe9; border-color: #a1887f; color: #6d4c41; transform: translateY(-2px); }
 
-        /* ช่องค้นหา (Search Bar) */
-        .search-container { max-width: 400px; margin: 0 auto 30px auto; position: relative; }
+        .search-container { max-width: 400px; margin: 0 auto 30px auto; }
         #search-input {
             width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid #d7ccc8;
             font-size: 16px; outline: none; transition: 0.3s; box-sizing: border-box;
             background: #fff; color: #5d4037;
         }
-        #search-input:focus { border-color: #8d6e63; box-shadow: 0 0 10px rgba(141, 110, 99, 0.2); }
 
         .gallery-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
         
@@ -41,8 +38,17 @@
         .char-img { width: 100%; height: 320px; object-fit: cover; object-position: top; border-bottom: 2px solid #f4ece1; }
         .char-info { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         .char-name { font-size: 18px; font-weight: bold; color: #795548; margin: 0; }
-        .char-faction { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; background: #efebe9; color: #8d6e63; margin-top: 5px; width: fit-content; }
         
+        /* จัดวาง Tag ให้อยู่ข้างกัน */
+        .tag-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .char-faction { padding: 2px 10px; border-radius: 20px; font-size: 11px; background: #efebe9; color: #8d6e63; border: 1px solid #d7ccc8; }
+        
+        /* สไตล์ Status Tags */
+        .status-tag { padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .status-alive { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .status-missing { background-color: #f5f5f5; color: #757575; border: 1px solid #e0e0e0; }
+        .status-dead { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
         .char-bio-preview { 
             font-size: 13px; margin-top: 10px; line-height: 1.5; color: #6d4c41;
             display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; 
@@ -73,8 +79,6 @@
 
     <div class="top-nav">
         <a href="https://akanezz2314.github.io/Akane_system_test03/index.html" class="add-btn">➕ ลงทะเบียนตัวละครใหม่</a>
-        
-        <!-- ส่วนช่องค้นหาที่เพิ่มเข้ามา -->
         <div class="search-container">
             <input type="text" id="search-input" placeholder="🔍 ค้นหาชื่อตัวละคร..." onkeyup="filterCharacters()">
         </div>
@@ -90,10 +94,9 @@
             <span class="close-btn" onclick="document.getElementById('detail-modal').style.display='none'">&times;</span>
             <img id="det-img" class="detail-img">
             <h2 id="det-name" style="color: #8d6e63; margin-bottom: 5px;"></h2>
-            <div id="det-faction" class="char-faction"></div>
-            <div style="margin: 15px 0;">
-                <span id="det-hp" class="stat-badge"></span>
-                <span id="det-status" class="stat-badge"></span>
+            <div class="tag-row" style="justify-content: center; margin-bottom: 15px;">
+                <span id="det-faction" class="char-faction"></span>
+                <span id="det-status-tag" class="status-tag"></span>
             </div>
             <p id="det-bio" style="text-align: left; line-height: 1.6; color: #5d4037; white-space: pre-wrap;"></p>
         </div>
@@ -114,8 +117,17 @@
             <label>รายชื่อตัวละคร</label><input type="text" id="edit-name">
             <label>เผ่าพันธุ์</label>
             <select id="edit-faction">
-                <option value="เทพ">เทพ</option><option value="มาร">มาร</option><option value="ผู้วิเศษ">ผู้วิเศษ</option><option value="สามัญชน">สามัญชน</option><option value="อื่นๆ">อื่นๆ</option>
+                <option value="เทพ">เทพ</option><option value="มาร">มาร</option><option value="ผู้วิเศษ">ผู้วิเศษ</option><option value="มนุษย์">มนุษย์</option><option value="มังกร">มังกร</option><option value="อื่นๆ">อื่นๆ</option>
             </select>
+            
+            <!-- เพิ่มส่วนแก้ไขสถานะ -->
+            <label>สถานะ</label>
+            <select id="edit-status">
+                <option value="มีชีวิต">มีชีวิต</option>
+                <option value="สูญหาย">สูญหาย</option>
+                <option value="เสียชีวิต">เสียชีวิต</option>
+            </select>
+
             <label>บันทึกประวัติ</label><textarea id="edit-bio" rows="4"></textarea>
             
             <button class="save-btn" id="save-btn" onclick="saveEdit()">บันทึกการเปลี่ยนแปลง</button>
@@ -138,7 +150,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyouf8yQuixCSP5zhS6EbjeknYy5335fAx0M4gshQBITd7HUE1ARxHHhgvMVxUT-Q-WLA/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwW6mGUQpc0BX6cqqq-V37tJ22PtWWSPMm7y910fpt3eORRSM-Wl8asv4hU3RWATL9UiQ/exec";
         const IMGBB_API_KEY = "22f0d46a823d6fcfd96b1b2754fd195b";
         
         let allData = [];
@@ -149,28 +161,26 @@
             try {
                 const response = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
                 allData = await response.json();
-                
-                // --- เพิ่มส่วนเรียงลำดับใหม่ (Newest First) ---
                 allData.reverse(); 
-                
                 renderGallery(allData);
             } catch (e) { document.getElementById('loading').innerText = "❌ ติดต่อสารบบไม่ได้"; }
         }
 
-        // ปรับปรุงฟังก์ชัน render ให้รับค่า data มาวาดได้
+        // ฟังก์ชันช่วยเลือกสี Tag
+        function getStatusClass(status) {
+            if (status === 'มีชีวิต') return 'status-alive';
+            if (status === 'สูญหาย') return 'status-missing';
+            if (status === 'เสียชีวิต') return 'status-dead';
+            return 'status-alive';
+        }
+
         function renderGallery(dataToRender) {
             const gallery = document.getElementById('gallery');
-            gallery.innerHTML = ''; 
-            document.getElementById('loading').style.display = 'none';
+            gallery.innerHTML = ''; document.getElementById('loading').style.display = 'none';
             
-            if (dataToRender.length === 0) {
-                gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #8d6e63;">🔍 ไม่พบรายชื่อที่ค้นหา</p>';
-                return;
-            }
-
             dataToRender.forEach((char) => {
-                // หา index ดั้งเดิมใน allData เพื่อใช้กับ Modal
                 const originalIndex = allData.findIndex(d => d.id === char.id);
+                const statusClass = getStatusClass(char.status);
                 
                 const card = document.createElement('div');
                 card.className = 'char-card';
@@ -180,7 +190,10 @@
                     <img src="${finalImg}" class="char-img" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
                     <div class="char-info">
                         <p class="char-name">${char.name || 'ไม่ระบุชื่อ'}</p>
-                        <span class="char-faction">${char.faction || 'สามัญชน'}</span>
+                        <div class="tag-row">
+                            <span class="char-faction">${char.faction || 'สามัญชน'}</span>
+                            <span class="status-tag ${statusClass}">${char.status || 'ยังมีชีวิต'}</span>
+                        </div>
                         <div class="char-bio-preview">${char.bio || 'ไม่มีบันทึกประวัติ'}</div>
                         <button class="edit-btn" onclick="openEdit(${originalIndex})">⚙️ แก้ไขข้อมูล</button>
                     </div>`;
@@ -188,23 +201,24 @@
             });
         }
 
-        // --- เพิ่มฟังก์ชันกรองข้อมูล (Search) ---
         function filterCharacters() {
             const query = document.getElementById('search-input').value.toLowerCase();
-            const filtered = allData.filter(char => 
-                (char.name || '').toLowerCase().includes(query)
-            );
+            const filtered = allData.filter(char => (char.name || '').toLowerCase().includes(query));
             renderGallery(filtered);
         }
 
         function showDetail(index) {
             const char = allData[index];
+            const statusClass = getStatusClass(char.status);
             document.getElementById('det-img').src = char.imageurl || char.imageUrl || '';
             document.getElementById('det-name').innerText = char.name;
             document.getElementById('det-faction').innerText = char.faction;
             document.getElementById('det-bio').innerText = char.bio;
-            document.getElementById('det-hp').innerText = "❤️ HP: " + (char.hp || '100');
-            document.getElementById('det-status').innerText = "✨ สถานะ: " + (char.status || 'ปกติ');
+            
+            const statusTag = document.getElementById('det-status-tag');
+            statusTag.innerText = char.status || 'มีชีวิต';
+            statusTag.className = `status-tag ${statusClass}`;
+            
             document.getElementById('detail-modal').style.display = 'flex';
         }
 
@@ -213,12 +227,14 @@
             document.getElementById('edit-id').value = char.id;
             document.getElementById('edit-name').value = char.name;
             document.getElementById('edit-faction').value = char.faction;
+            document.getElementById('edit-status').value = char.status || "ยังมีชีวิต"; // ดึงสถานะมาโชว์
             document.getElementById('edit-bio').value = char.bio;
             document.getElementById('edit-preview-current').src = char.imageurl || char.imageUrl || '';
             croppedBlob = null;
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
+        // ... โค้ดระบบ Crop (เหมือนเดิม) ...
         document.getElementById('edit-image-input').addEventListener('change', function(e) {
             const files = e.target.files;
             if (files && files.length > 0) {
@@ -246,6 +262,7 @@
             const id = document.getElementById('edit-id').value;
             const name = document.getElementById('edit-name').value;
             const faction = document.getElementById('edit-faction').value;
+            const status = document.getElementById('edit-status').value; // รับค่าสถานะใหม่
             const bio = document.getElementById('edit-bio').value;
             let finalImageUrl = document.getElementById('edit-preview-current').src;
 
@@ -264,7 +281,15 @@
                 await fetch(SCRIPT_URL, {
                     method: "POST",
                     mode: "no-cors",
-                    body: JSON.stringify({ action: "update", id: id, name: name, faction: faction, bio: bio, imageUrl: finalImageUrl })
+                    body: JSON.stringify({ 
+                        action: "update", 
+                        id: id, 
+                        name: name, 
+                        faction: faction, 
+                        status: status, // ส่งสถานะไปอัปเดต
+                        bio: bio, 
+                        imageUrl: finalImageUrl 
+                    })
                 });
                 alert("อัปเดตข้อมูลเรียบร้อย!");
                 location.reload();
@@ -281,20 +306,11 @@
             const id = document.getElementById('edit-id').value;
             btn.innerText = "⏳ กำลังลบ...";
             btn.disabled = true;
-
             try {
-                await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify({ action: "delete", id: id })
-                });
+                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id: id }) });
                 alert("ลบข้อมูลเรียบร้อย!");
                 location.reload();
-            } catch (e) {
-                alert("เกิดข้อผิดพลาดในการลบ");
-                btn.disabled = false;
-                btn.innerText = "ลบรายชื่อนี้ออกจากระบบ";
-            }
+            } catch (e) { alert("เกิดข้อผิดพลาด"); btn.disabled = false; }
         }
 
         function closeModalOutside(e, id) { if (e.target.id === id) document.getElementById(id).style.display = 'none'; }
