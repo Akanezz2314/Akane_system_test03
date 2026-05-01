@@ -8,16 +8,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         body { font-family: 'Tahoma', sans-serif; margin: 0; background: #f4ece1; color: #5d4037; padding: 40px 20px; }
-        h1 { text-align: center; color: #8d6e63; letter-spacing: 2px; margin-bottom: 30px; }
+        h1 { text-align: center; color: #8d6e63; letter-spacing: 2px; margin-bottom: 20px; }
         
-        .top-nav { text-align: center; margin-bottom: 40px; }
+        .top-nav { text-align: center; margin-bottom: 30px; }
         .add-btn {
             display: inline-block; padding: 12px 28px; background: #ffffff;
             border: 2px solid #d7ccc8; border-radius: 12px; color: #8d6e63;
             text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px;
         }
         .add-btn:hover { background: #efebe9; border-color: #a1887f; color: #6d4c41; transform: translateY(-2px); }
+
+        /* ช่องค้นหา (Search Bar) */
+        .search-container { max-width: 400px; margin: 0 auto 30px auto; position: relative; }
+        #search-input {
+            width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid #d7ccc8;
+            font-size: 16px; outline: none; transition: 0.3s; box-sizing: border-box;
+            background: #fff; color: #5d4037;
+        }
+        #search-input:focus { border-color: #8d6e63; box-shadow: 0 0 10px rgba(141, 110, 99, 0.2); }
 
         .gallery-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
         
@@ -56,7 +65,6 @@
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: #8d6e63; }
         input, select, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #d7ccc8; border-radius: 10px; box-sizing: border-box; }
         
-        /* ปุ่มลบข้อมูลที่เอากลับมา */
         .delete-btn { background: #ef4444; color: white; width: 100%; padding: 10px; border: none; border-radius: 10px; cursor: pointer; margin-top: 10px; font-weight: bold; }
         .save-btn { background: #6d4c41; color: white; width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; font-weight: bold; font-size: 16px; }
     </style>
@@ -65,10 +73,15 @@
 
     <div class="top-nav">
         <a href="https://akanezz2314.github.io/Akane_system_test03/index.html" class="add-btn">➕ ลงทะเบียนตัวละครใหม่</a>
+        
+        <!-- ส่วนช่องค้นหาที่เพิ่มเข้ามา -->
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="🔍 ค้นหาชื่อตัวละคร..." onkeyup="filterCharacters()">
+        </div>
     </div>
 
     <h1>👤 ทะเบียนรายชื่อตัวละคร</h1>
-    <div id="loading" style="text-align: center;">✨ กำลังโหลดข้อมูลตัวละคร...</div>
+    <div id="loading" style="text-align: center;">✨ กำลังอัญเชิญข้อมูล...</div>
     <div class="gallery-container" id="gallery"></div>
 
     <!-- 1. ดูข้อมูลละเอียด -->
@@ -86,7 +99,7 @@
         </div>
     </div>
 
-    <!-- 2. แก้ไขข้อมูล (ปุ่มลบกลับมาแล้วครับ) -->
+    <!-- 2. แก้ไขข้อมูล -->
     <div id="edit-modal" class="modal">
         <div class="modal-content">
             <h2 style="text-align: center; color:#8d6e63;">📝 แก้ไขข้อมูล</h2>
@@ -136,17 +149,32 @@
             try {
                 const response = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
                 allData = await response.json();
-                renderGallery();
+                
+                // --- เพิ่มส่วนเรียงลำดับใหม่ (Newest First) ---
+                allData.reverse(); 
+                
+                renderGallery(allData);
             } catch (e) { document.getElementById('loading').innerText = "❌ ติดต่อสารบบไม่ได้"; }
         }
 
-        function renderGallery() {
+        // ปรับปรุงฟังก์ชัน render ให้รับค่า data มาวาดได้
+        function renderGallery(dataToRender) {
             const gallery = document.getElementById('gallery');
-            gallery.innerHTML = ''; document.getElementById('loading').style.display = 'none';
-            allData.forEach((char, index) => {
+            gallery.innerHTML = ''; 
+            document.getElementById('loading').style.display = 'none';
+            
+            if (dataToRender.length === 0) {
+                gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #8d6e63;">🔍 ไม่พบรายชื่อที่ค้นหา</p>';
+                return;
+            }
+
+            dataToRender.forEach((char) => {
+                // หา index ดั้งเดิมใน allData เพื่อใช้กับ Modal
+                const originalIndex = allData.findIndex(d => d.id === char.id);
+                
                 const card = document.createElement('div');
                 card.className = 'char-card';
-                card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') showDetail(index); };
+                card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') showDetail(originalIndex); };
                 const finalImg = char.imageurl || char.imageUrl || ''; 
                 card.innerHTML = `
                     <img src="${finalImg}" class="char-img" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
@@ -154,10 +182,19 @@
                         <p class="char-name">${char.name || 'ไม่ระบุชื่อ'}</p>
                         <span class="char-faction">${char.faction || 'สามัญชน'}</span>
                         <div class="char-bio-preview">${char.bio || 'ไม่มีบันทึกประวัติ'}</div>
-                        <button class="edit-btn" onclick="openEdit(${index})">⚙️ แก้ไขข้อมูล</button>
+                        <button class="edit-btn" onclick="openEdit(${originalIndex})">⚙️ แก้ไขข้อมูล</button>
                     </div>`;
                 gallery.appendChild(card);
             });
+        }
+
+        // --- เพิ่มฟังก์ชันกรองข้อมูล (Search) ---
+        function filterCharacters() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allData.filter(char => 
+                (char.name || '').toLowerCase().includes(query)
+            );
+            renderGallery(filtered);
         }
 
         function showDetail(index) {
