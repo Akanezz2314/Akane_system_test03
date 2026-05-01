@@ -4,144 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ลงทะเบียนตัวละคร - Commu</title>
-    <!-- Cropper.js CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         body { 
             font-family: 'Tahoma', sans-serif; 
             margin: 0; 
-            background: #f4ece1; 
-            background-image: radial-gradient(#dccab1 0.5px, #f4ece1 0.5px);
-            background-size: 20px 20px;
+            background-color: #fdf2e9; /* สีพื้นหลังหลัก */
             display: flex; justify-content: center; align-items: center; min-height: 100vh;
             color: #5d4037; 
+            overflow: hidden; /* กัน Scroll bar โผล่ตอนใบไม้ร่วง */
         }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1; /* ขยับขึ้นมาข้างบน body */
+            pointer-events: none;
+        }
+
         .container { 
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.9); 
             padding: 40px; border-radius: 30px; width: 400px; 
-            border: 2px solid #d7ccc8; 
-            box-shadow: 0 15px 35px rgba(93, 64, 55, 0.1);
-        }
-        h2 { 
-            color: #8d6e63; text-align: center; margin-top: 0; letter-spacing: 1px;
-            border-bottom: 2px dashed #d7ccc8; padding-bottom: 15px;
-        }
-        label { display: block; margin-top: 15px; font-size: 14px; font-weight: bold; color: #795548; }
-        
-        input, select, textarea { 
-            width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px;
-            border: 1px solid #d7ccc8; background: #fafafa; color: #5d4037;
-            box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s;
+            border: 2px solid #e67e22; 
+            box-shadow: 0 15px 35px rgba(230, 126, 34, 0.15);
+            position: relative;
+            z-index: 10; /* อยู่หน้าใบไม้ */
+            max-height: 90vh; overflow-y: auto; /* เพิ่ม scroll ภายในกล่องถ้าจอเล็ก */
         }
         
-        input:focus, select:focus, textarea:focus { 
-            border-color: #a1887f; background: #fff;
-            box-shadow: 0 0 8px rgba(161, 136, 127, 0.2);
-        }
-
-        button { 
-            width: 100%; padding: 15px; margin-top: 25px; border: none; border-radius: 12px;
-            background: #8d6e63; color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
-            font-size: 16px; box-shadow: 0 4px 10px rgba(141, 110, 99, 0.3);
-        }
-        
-        button:hover { background: #6d4c41; transform: translateY(-2px); }
-
-        .nav-btn {
-            display: block; text-align: center; margin-top: 20px; padding: 12px;
-            background: none; border: 2px solid #d7ccc8; border-radius: 12px;
-            color: #8d6e63; text-decoration: none; font-size: 14px; font-weight: bold; transition: 0.3s;
-        }
-
-        .nav-btn:hover { background: #efebe9; border-color: #a1887f; color: #6d4c41; }
-        button:disabled { background: #d7ccc8; cursor: not-allowed; }
-        #loading { display: none; text-align: center; margin-top: 20px; color: #8d6e63; font-style: italic; font-size: 14px; }
-
-        /* Modal Styles สำหรับระบบ Crop */
-        #crop-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: white; padding: 20px; border-radius: 20px; width: 90%; max-width: 500px;
-        }
-        .crop-container { width: 100%; height: 400px; background: #333; margin-bottom: 20px; overflow: hidden; }
-        #image-to-crop { max-width: 100%; }
-        .crop-actions { display: flex; gap: 10px; }
-        .crop-actions button { margin-top: 0; }
-        .secondary-btn { background: #a1887f; }
+        h2 { color: #d35400; text-align: center; margin-top: 0; border-bottom: 2px dashed #e67e22; padding-bottom: 15px; }
+        label { display: block; margin-top: 15px; font-size: 14px; font-weight: bold; color: #a04000; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #edbb99; background: #fffaf0; box-sizing: border-box; outline: none; }
+        button { width: 100%; padding: 15px; margin-top: 25px; border: none; border-radius: 12px; background: #d35400; color: white; font-weight: bold; cursor: pointer; }
+        button:hover { background: #ba4a00; }
+        .nav-btn { display: block; text-align: center; margin-top: 20px; padding: 12px; border: 2px solid #edbb99; border-radius: 12px; color: #d35400; text-decoration: none; font-size: 14px; font-weight: bold; }
+        #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 20px; width: 90%; max-width: 500px; }
     </style>
 </head>
 <body>
 
-<div class="container" id="reg-form">
-    <h2>✏️บันทึกรายชื่อ</h2>
-    
-    <label>รายชื่อตัวละคร</label>
-    <input type="text" id="char-name" placeholder="ระบุชื่อ...">
+<canvas id="bg-canvas"></canvas>
 
+<div class="container" id="reg-form">
+    <h2>🍂 บันทึกรายชื่อ</h2>
+    <label>รายชื่อตัวละคร</label><input type="text" id="char-name" placeholder="ระบุชื่อ...">
     <label>เผ่าพันธุ์</label>
     <select id="char-faction">
-        <option value="เทพ">เทพ</option>
-        <option value="มาร">มาร</option>
-        <option value="ผู้วิเศษ">ผู้วิเศษ</option>
-        <option value="มนุษย์">มนุษย์</option>
-        <option value="มังกร">มังกร</option>
-        <option value="อื่น ๆ">อื่น ๆ</option>
+        <option value="เทพ">เทพ</option><option value="มาร">มาร</option><option value="ผู้วิเศษ">ผู้วิเศษ</option><option value="มนุษย์">มนุษย์</option><option value="มังกร">มังกร</option><option value="อื่น ๆ">อื่น ๆ</option>
     </select>
-
-    <label>บันทึกประวัติ</label>
-    <textarea id="char-bio" rows="3" placeholder="เล่าเรื่องราวโดยสังเขป..."></textarea>
-
-    <!-- เพิ่มส่วนเลือกสถานะ (Status) -->
+    <label>บันทึกประวัติ</label><textarea id="char-bio" rows="3" placeholder="เล่าเรื่องราวโดยสังเขป..."></textarea>
     <label>สถานะตัวละคร</label>
-    <select id="char-status">
-        <option value="มีชีวิต">มีชีวิต</option>
-        <option value="สูญหาย">สูญหาย</option>
-        <option value="เสียชีวิต">เสียชีวิต</option>
-    </select>
-
-    <label>รูปตัวละคร</label>
-    <input type="file" id="char-image" accept="image/*">
-
+    <select id="char-status"><option value="มีชีวิต">มีชีวิต</option><option value="สูญหาย">สูญหาย</option><option value="เสียชีวิต">เสียชีวิต</option></select>
+    <label>รูปตัวละคร</label><input type="file" id="char-image" accept="image/*">
     <div id="preview-container" style="display:none; margin-top:15px; text-align:center;">
-        <p style="font-size:12px; color:#8d6e63;">ภาพที่ถูกตัดแล้ว:</p>
-        <img id="final-preview" style="width:120px; height:160px; object-fit:cover; border-radius:10px; border:2px solid #d7ccc8;">
+        <img id="final-preview" style="width:120px; height:160px; object-fit:cover; border-radius:10px; border:2px solid #e67e22;">
     </div>
-
-    <button id="submit-btn" onclick="startRegistration()">บันทึกข้อมูลลงทำเนียบตัวละคร</button>
-    <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">👤ดูทำเนียบตัวละคร</a>
-    <div id="loading">🟡กำลังบันทึกข้อมูล...</div>
+    <button id="submit-btn" onclick="startRegistration()">บันทึกข้อมูลตัวละคร</button>
+    <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">🏮 ดูทำเนียบตัวละคร</a>
+    <div id="loading" style="display:none; text-align:center; margin-top:10px;">🍂 กำลังสื่อสารกับสารบบ...</div>
 </div>
 
 <div id="crop-modal">
     <div class="modal-content">
-        <h3 style="margin-top:0; color:#8d6e63;">✂️ Crop(3:4)</h3>
-        <div class="crop-container">
-            <img id="image-to-crop">
-        </div>
-        <div class="crop-actions">
-            <button onclick="confirmCrop()">ตกลง</button>
-            <button class="secondary-btn" onclick="closeModal()">ยกเลิก</button>
-        </div>
+        <h3 style="margin-top:0; color:#d35400;">✂️ Crop(3:4)</h3>
+        <div style="width:100%; height:350px; background:#333; margin-bottom:20px; overflow:hidden;"><img id="image-to-crop" style="max-width:100%;"></div>
+        <div style="display:flex; gap:10px;"><button onclick="confirmCrop()">ตกลง</button><button style="background:#7f8c8d;" onclick="closeModal()">ยกเลิก</button></div>
     </div>
 </div>
 
 <div class="container" id="success-msg" style="display:none; text-align: center;">
-    <h2 style="color: #8d6e63; border: none;">สำเร็จ!</h2>
-    <p>บันทึกข้อมูลตัวละครเรียบร้อยแล้ว</p>
+    <h2>สำเร็จ!</h2><p>บันทึกข้อมูลตัวละครเรียบร้อยแล้ว</p>
     <button onclick="location.reload()">เพิ่มตัวละครใหม่</button>
-    <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">🏮 ไปยังหน้ารายชื่อตัวละคร</a>
+    <a href="https://akanezz2314.github.io/Akane_system_test03/gallery.html" class="nav-btn">🏮 ไปยังหน้า Gallery</a>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
 <script>
+    // --- 🍂 ระบบใบไม้ร่วง (Fixed Version) ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let leaves = [];
+
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Leaf {
+        constructor() {
+            this.init();
+            this.y = Math.random() * canvas.height; // กระจายตัวตอนเริ่มครั้งแรก
+        }
+        init() {
+            this.x = Math.random() * canvas.width;
+            this.y = -20;
+            this.r = Math.random() * 4 + 2;
+            this.v = Math.random() * 1.5 + 0.5; 
+            this.w = Math.random() * 0.02; 
+            this.angle = Math.random() * Math.PI * 2;
+            const colors = ['#e67e22', '#d35400', '#f39c12', '#c0392b'];
+            this.color = colors[Math.floor(Math.random() * colors.length)];
+        }
+        draw() {
+            ctx.beginPath(); ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+            ctx.moveTo(0, 0); ctx.quadraticCurveTo(this.r, -this.r, this.r * 2, 0); ctx.quadraticCurveTo(this.r, this.r, 0, 0);
+            ctx.fillStyle = this.color; ctx.fill(); ctx.restore();
+        }
+        update() {
+            this.y += this.v; this.x += Math.sin(this.y * this.w); this.angle += 0.01;
+            if (this.y > canvas.height) this.init();
+        }
+    }
+
+    for (let i = 0; i < 15; i++) leaves.push(new Leaf());
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        leaves.forEach(l => { l.update(); l.draw(); });
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+    // --- 💾 ระบบบันทึกข้อมูล (Fixed Typo) ---
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwW6mGUQpc0BX6cqqq-V37tJ22PtWWSPMm7y910fpt3eORRSM-Wl8asv4hU3RWATL9UiQ/exec";
     const IMGBB_API_KEY = "22f0d46a823d6fcfd96b1b2754fd195b";
-    
-    let cropper;
-    let croppedBlob;
+    let cropper, croppedBlob;
 
     document.getElementById('char-image').addEventListener('change', function(e) {
         const files = e.target.files;
@@ -156,8 +145,7 @@
     });
 
     function confirmCrop() {
-        const canvas = cropper.getCroppedCanvas({ width: 600, height: 800 });
-        canvas.toBlob((blob) => {
+        cropper.getCroppedCanvas({ width: 600, height: 800 }).toBlob((blob) => {
             croppedBlob = blob;
             document.getElementById('final-preview').src = URL.createObjectURL(blob);
             document.getElementById('preview-container').style.display = 'block';
@@ -171,52 +159,29 @@
         const name = document.getElementById('char-name').value.trim();
         const faction = document.getElementById('char-faction').value;
         const bio = document.getElementById('char-bio').value.trim();
-        const status = document.getElementById('char-status').value; // รับค่าสถานะ
+        const status = document.getElementById('char-status').value;
         const btn = document.getElementById('submit-btn');
         const loader = document.getElementById('loading');
 
-        if (!name || !croppedBlob) {
-            alert("กรุณาระบุชื่อและตัดภาพตัวละครก่อนบันทึก");
-            return;
-        }
-
-        btn.disabled = true;
-        loader.style.display = "block";
+        if (!name || !croppedBlob) { alert("กรุณาระบุชื่อและตัดภาพตัวละครก่อนบันทึก"); return; }
+        btn.disabled = true; loader.style.display = "block";
 
         try {
             const formData = new FormData();
             formData.append("image", croppedBlob, "character.jpg");
-            
-            const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                method: "POST", body: formData
-            });
-            const imgbbData = await imgbbResponse.json();
+            const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+            const imgbbData = await imgbbRes.json(); // แก้ไขตรงนี้ครับ
             if (!imgbbData.success) throw new Error("ImgBB Upload Failed");
-            const imageUrl = imgbbData.data.url;
-
-            // ส่งข้อมูลไปที่ Google Sheet พร้อมค่า status
+            
             await fetch(SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({
-                    name: name,
-                    faction: faction,
-                    bio: bio,
-                    status: status, // เพิ่มตัวแปรสถานะตรงนี้
-                    imageUrl: imageUrl
-                })
+                method: "POST", mode: "no-cors",
+                body: JSON.stringify({ name, faction, bio, status, imageUrl: imgbbData.data.url })
             });
 
             document.getElementById('reg-form').style.display = "none";
             document.getElementById('success-msg').style.display = "block";
-
-        } catch (error) {
-            console.error(error);
-            alert("เกิดข้อผิดพลาด: " + error.message);
-        } finally {
-            btn.disabled = false;
-            loader.style.display = "none";
-        }
+        } catch (error) { alert("เกิดข้อผิดพลาด: " + error.message); } 
+        finally { btn.disabled = false; loader.style.display = "none"; }
     }
 </script>
 </body>
