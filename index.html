@@ -59,7 +59,11 @@
         <option value="มังกร">มังกร</option>
         <option value="อื่น ๆ">อื่น ๆ</option>
     </select>
-    <label>บันทึกประวัติ</label><textarea id="char-bio" rows="3" placeholder="เล่าเรื่องราวโดยสังเขป..."></textarea>
+    
+    <!-- เพิ่มคำแนะนำการตกแต่งตัวอักษรที่ Label -->
+    <label>บันทึกประวัติ (**หนา**, *เอียง*, __ขีดเส้นใต้__, ~~ขีดฆ่า~~)</label>
+    <textarea id="char-bio" rows="3" placeholder="เล่าเรื่องราวโดยสังเขป..."></textarea>
+    
     <label>สถานะตัวละคร</label>
     <select id="char-status"><option value="มีชีวิต">มีชีวิต</option><option value="สูญหาย">สูญหาย</option><option value="เสียชีวิต">เสียชีวิต</option></select>
     <label>รูปตัวละคร</label><input type="file" id="char-image" accept="image/*">
@@ -88,7 +92,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
 <script>
-    // --- 🍂 ระบบใบไม้ร่วง (Fixed Version) ---
+    // --- 🍂 ระบบใบไม้ร่วง ---
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
     let leaves = [];
@@ -100,14 +104,14 @@
     class Leaf {
         constructor() {
             this.init();
-            this.y = Math.random() * canvas.height; // กระจายตัวตอนเริ่มครั้งแรก
+            this.y = Math.random() * canvas.height; 
         }
         init() {
             this.x = Math.random() * canvas.width;
             this.y = -20;
             this.r = Math.random() * 4 + 2;
-            this.v = Math.random() * 1.5 + 0.5; 
-            this.w = Math.random() * 0.02; 
+            this.v = Math.random() * 0.8 + 0.3; // ปรับให้ตกช้าลงตามที่ท่านต้องการ
+            this.w = Math.random() * 0.01; 
             this.angle = Math.random() * Math.PI * 2;
             const colors = ['#e67e22', '#d35400', '#f39c12', '#c0392b'];
             this.color = colors[Math.floor(Math.random() * colors.length)];
@@ -132,7 +136,7 @@
     }
     animate();
 
-    // --- 💾 ระบบบันทึกข้อมูล (Fixed Typo) ---
+    // --- 💾 ระบบบันทึกข้อมูล ---
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwW6mGUQpc0BX6cqqq-V37tJ22PtWWSPMm7y910fpt3eORRSM-Wl8asv4hU3RWATL9UiQ/exec";
     const IMGBB_API_KEY = "22f0d46a823d6fcfd96b1b2754fd195b";
     let cropper, croppedBlob;
@@ -175,7 +179,7 @@
             const formData = new FormData();
             formData.append("image", croppedBlob, "character.jpg");
             const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
-            const imgbbData = await imgbbRes.json(); // แก้ไขตรงนี้ครับ
+            const imgbbData = await imgbbRes.json(); 
             if (!imgbbData.success) throw new Error("ImgBB Upload Failed");
             
             await fetch(SCRIPT_URL, {

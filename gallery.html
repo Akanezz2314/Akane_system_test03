@@ -123,6 +123,7 @@
                 <span id="det-faction" class="char-faction"></span>
                 <span id="det-status-tag" class="status-tag"></span>
             </div>
+            <!-- ส่วนที่แสดงผล Markdown -->
             <p id="det-bio" style="text-align: left; line-height: 1.6; color: #5d4037; white-space: pre-wrap;"></p>
         </div>
     </div>
@@ -133,25 +134,29 @@
             <h2 style="text-align: center; color:#d35400;">📝 แก้ไขข้อมูล</h2>
             <input type="hidden" id="edit-id">
             
-            <!-- ส่วนที่ปรับขนาดรูปให้ใหญ่ขึ้น และย้ายตัวหนังสือลงมาข้างล่าง -->
-<div style="text-align:center; margin-bottom: 15px;">
-    <img id="edit-preview-current" style="width: 150px; height: 200px; object-fit: cover; border-radius: 12px; border: 2px solid #edbb99; display: block; margin: 0 auto 10px auto;">
-    <label style="font-size: 14px; font-weight: bold; color: #d35400;">เปลี่ยนรูปภาพ</label>
-</div>
+            <div style="text-align:center; margin-bottom: 15px;">
+                <img id="edit-preview-current" style="width: 150px; height: 200px; object-fit: cover; border-radius: 12px; border: 2px solid #edbb99; display: block; margin: 0 auto 10px auto;">
+                <label style="font-size: 14px; font-weight: bold; color: #d35400;">เปลี่ยนรูปภาพ</label>
+            </div>
             <input type="file" id="edit-image-input" accept="image/*">
-            <div style="text-align:center; margin: 10px 0;">   
-        </div>
 
             <label>รายชื่อตัวละคร</label><input type="text" id="edit-name">
             <label>เผ่าพันธุ์</label>
             <select id="edit-faction">
-                <option value="เทพ">เทพ</option><option value="มาร">มาร</option><option value="ผู้วิเศษ">ผู้วิเศษ</option><option value="มนุษย์">มนุษย์</option><option value="มังกร">มังกร</option><option value="อื่นๆ">อื่นๆ</option>
+                <option value="เทพ">เทพ</option>
+                <option value="มาร">มาร</option>
+                <option value="ผู้วิเศษ">ผู้วิเศษ</option>
+                <option value="มนุษย์">มนุษย์</option>
+                <option value="มังกร">มังกร</option>
+                <option value="อื่นๆ">อื่นๆ</option>
             </select>
             <label>สถานะ</label>
             <select id="edit-status">
-                <option value="มีชีวิต">มีชีวิต</option><option value="สูญหาย">สูญหาย</option><option value="เสียชีวิต">เสียชีวิต</option>
+                <option value="มีชีวิต">มีชีวิต</option>
+                <option value="สูญหาย">สูญหาย</option>
+                <option value="เสียชีวิต">เสียชีวิต</option>
             </select>
-            <label>บันทึกประวัติ</label><textarea id="edit-bio" rows="4"></textarea>
+            <label>บันทึกประวัติ (**หนา**, *เอียง*, __ขีดเส้น__, ~~ฆ่าคำ~~)</label><textarea id="edit-bio" rows="4"></textarea>
             
             <button class="save-btn" id="save-btn" onclick="saveEdit()">บันทึกการเปลี่ยนแปลง</button>
             <button class="delete-btn" id="delete-btn" onclick="deleteCharacter()">ลบรายชื่อนี้ออกจากระบบ</button>
@@ -162,7 +167,7 @@
     <!-- 3. ตัดภาพ -->
     <div id="crop-modal" class="modal">
         <div class="modal-content" style="max-width: 450px;">
-            <h3 style="margin-top:0; color:#d35400;">✂️ ตัดภาพตัวละคร (3:4)</h3>
+            <h3 style="margin-top:0; color:#d35400;">ตัดภาพตัวละคร (3:4)</h3>
             <div class="crop-area"><img id="img-to-crop"></div>
             <button class="edit-btn" style="width:100%; padding:10px; font-size:16px;" onclick="confirmCrop()">ตกลง</button>
             <button style="width:100%; margin-top:10px; border:none; background:none; cursor:pointer; color:red;" onclick="closeCropModal()">ยกเลิก</button>
@@ -171,7 +176,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        // --- 🍂 ระบบใบไม้ร่วง (Autumn Animation) ---
+        // --- 🍂 ระบบใบไม้ร่วง ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let leaves = [];
@@ -185,8 +190,8 @@
                 this.x = Math.random() * canvas.width;
                 this.y = -20;
                 this.r = Math.random() * 4 + 2;
-                this.v = Math.random() * 1.5 + 0.5; 
-                this.w = Math.random() * 0.02; 
+                this.v = Math.random() * 0.8 + 0.3; 
+                this.w = Math.random() * 0.01; 
                 this.angle = Math.random() * Math.PI * 2;
                 const colors = ['#e67e22', '#d35400', '#f39c12', '#c0392b'];
                 this.color = colors[Math.floor(Math.random() * colors.length)];
@@ -201,7 +206,7 @@
                 if (this.y > canvas.height) this.init();
             }
         }
-        for (let i = 0; i < 15; i++) leaves.push(new Leaf());
+        for (let i = 0; i < 20; i++) leaves.push(new Leaf());
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             leaves.forEach(l => { l.update(); l.draw(); });
@@ -209,7 +214,17 @@
         }
         animate();
 
-        // --- 💾 ระบบสารบบ (Functional Scripts) ---
+        // --- ✨ ฟังก์ชันตกแต่งตัวอักษร (Markdown) ---
+        function formatMarkdown(text) {
+            if (!text) return '';
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')   // ตัวหนา
+                .replace(/\*(.*?)\*/g, '<i>$1</i>')       // ตัวเอียง
+                .replace(/__(.*?)__/g, '<u>$1</u>')       // ขีดเส้นใต้
+                .replace(/~~(.*?)~~/g, '<s>$1</s>');      // ขีดฆ่า
+        }
+
+        // --- 💾 ระบบสารบบ ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwW6mGUQpc0BX6cqqq-V37tJ22PtWWSPMm7y910fpt3eORRSM-Wl8asv4hU3RWATL9UiQ/exec";
         const IMGBB_API_KEY = "22f0d46a823d6fcfd96b1b2754fd195b";
         let allData = [], cropper, croppedBlob = null;
@@ -220,7 +235,7 @@
                 allData = await response.json();
                 allData.reverse(); 
                 renderGallery(allData);
-            } catch (e) { document.getElementById('loading').innerText = "❌ ติดต่อสารบบไม่ได้"; }
+            } catch (e) { document.getElementById('loading').innerText = "❌ ติดต่อระบบไม่ได้"; }
         }
 
         function getStatusClass(status) {
@@ -247,7 +262,7 @@
                             <span class="char-faction">${char.faction || 'สามัญชน'}</span>
                             <span class="status-tag ${statusClass}">${char.status || 'มีชีวิต'}</span>
                         </div>
-                        <div class="char-bio-preview">${char.bio || 'ไม่มีประวัติ'}</div>
+                        <div class="char-bio-preview">${formatMarkdown(char.bio) || 'ไม่มีประวัติ'}</div>
                         <button class="edit-btn" onclick="openEdit(${originalIndex})">⚙️ แก้ไขข้อมูล</button>
                     </div>`;
                 gallery.appendChild(card);
@@ -266,7 +281,10 @@
             document.getElementById('det-img').src = char.imageurl || char.imageUrl || '';
             document.getElementById('det-name').innerText = char.name;
             document.getElementById('det-faction').innerText = char.faction;
-            document.getElementById('det-bio').innerText = char.bio;
+            
+            // เปลี่ยนจาก .innerText เป็น .innerHTML เพื่อแสดงผลการตกแต่ง
+            document.getElementById('det-bio').innerHTML = formatMarkdown(char.bio);
+            
             const statusTag = document.getElementById('det-status-tag');
             statusTag.innerText = char.status || 'มีชีวิต';
             statusTag.className = `status-tag ${statusClass}`;
