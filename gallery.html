@@ -133,11 +133,14 @@
             <h2 style="text-align: center; color:#d35400;">📝 แก้ไขข้อมูล</h2>
             <input type="hidden" id="edit-id">
             
-            <label style="font-size: 12px; font-weight: bold;">เปลี่ยนรูปภาพ</label>
+            <!-- ส่วนที่ปรับขนาดรูปให้ใหญ่ขึ้น และย้ายตัวหนังสือลงมาข้างล่าง -->
+<div style="text-align:center; margin-bottom: 15px;">
+    <img id="edit-preview-current" style="width: 150px; height: 200px; object-fit: cover; border-radius: 12px; border: 2px solid #edbb99; display: block; margin: 0 auto 10px auto;">
+    <label style="font-size: 14px; font-weight: bold; color: #d35400;">เปลี่ยนรูปภาพ</label>
+</div>
             <input type="file" id="edit-image-input" accept="image/*">
-            <div style="text-align:center; margin: 10px 0;">
-                <img id="edit-preview-current" style="width:80px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #edbb99;">
-            </div>
+            <div style="text-align:center; margin: 10px 0;">   
+        </div>
 
             <label>รายชื่อตัวละคร</label><input type="text" id="edit-name">
             <label>เผ่าพันธุ์</label>

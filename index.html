@@ -52,7 +52,12 @@
     <label>รายชื่อตัวละคร</label><input type="text" id="char-name" placeholder="ระบุชื่อ...">
     <label>เผ่าพันธุ์</label>
     <select id="char-faction">
-        <option value="เทพ">เทพ</option><option value="มาร">มาร</option><option value="ผู้วิเศษ">ผู้วิเศษ</option><option value="มนุษย์">มนุษย์</option><option value="มังกร">มังกร</option><option value="อื่น ๆ">อื่น ๆ</option>
+        <option value="เทพ">เทพ</option>
+        <option value="มาร">มาร</option>
+        <option value="ผู้วิเศษ">ผู้วิเศษ</option>
+        <option value="มนุษย์">มนุษย์</option>
+        <option value="มังกร">มังกร</option>
+        <option value="อื่น ๆ">อื่น ๆ</option>
     </select>
     <label>บันทึกประวัติ</label><textarea id="char-bio" rows="3" placeholder="เล่าเรื่องราวโดยสังเขป..."></textarea>
     <label>สถานะตัวละคร</label>
@@ -163,7 +168,7 @@
         const btn = document.getElementById('submit-btn');
         const loader = document.getElementById('loading');
 
-        if (!name || !croppedBlob) { alert("กรุณาระบุชื่อและตัดภาพตัวละครก่อนบันทึก"); return; }
+        if (!name || !croppedBlob) { alert("กรุณาระบุชื่อและอัปโหลดภาพตัวละครก่อนบันทึก"); return; }
         btn.disabled = true; loader.style.display = "block";
 
         try {
